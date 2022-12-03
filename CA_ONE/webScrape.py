@@ -43,7 +43,6 @@ pd.set_option('display.max_columns', None)
 print(data)
 
 my_client = pymongo.MongoClient("mongodb://pythonca2:reU3cS3CLAUaHHJ4126e3FG6cZ5iZ2q4cFd8vbqu87bcPmfsJinH3LeTg22HCqMQfK1A1EGGjLyJACDbgxzTQg==@pythonca2.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@pythonca2@")
-
 my_db = my_client["hotel_test"]
 my_col = my_db["test_data"]
 records = json.loads(data.T.to_json()).values()
