@@ -3,11 +3,30 @@ import requests
 import pandas as pd
 import pymongo
 from pandas.io import json
+from contextlib import closing
+from selenium.webdriver import Chrome # pip install selenium
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
 
-url = 'https://www.easemytrip.com/hotels/hotels-in-bangalore'
-page = requests.get(url)
 
-soup = BeautifulSoup(page.content, 'html.parser')
+with closing(Chrome()) as driver:
+    driver.get("https://www.easemytrip.com/hotels/hotels-in-bangalore")
+    driver.exe
+    button = driver.find_elements('deviceShowAllLink')
+    button.click()
+    # wait for the page to load
+    element = WebDriverWait(driver, 10).until(
+        EC.invisibility_of_element_located((By.ID, "deviceShowAllLink"))
+    )
+    # store it to string variable
+    page_source = driver.page_source
+
+#url = 'https://www.easemytrip.com/hotels/hotels-in-bangalore'
+#page = requests.get(url)
+
+#soup = BeautifulSoup(page.content, 'html.parser')
+soup = BeautifulSoup(page_source)
 lists = soup.find_all('div', class_="result-item" )
 
 title = []
@@ -42,12 +61,12 @@ data = pd.DataFrame({'title':title, 'address':address, 'hotel_type':hotel_type, 
 pd.set_option('display.max_columns', None)
 print(data)
 
-my_client = pymongo.MongoClient("mongodb://pythonca2:reU3cS3CLAUaHHJ4126e3FG6cZ5iZ2q4cFd8vbqu87bcPmfsJinH3LeTg22HCqMQfK1A1EGGjLyJACDbgxzTQg==@pythonca2.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@pythonca2@")
-my_db = my_client["hotel_test"]
-my_col = my_db["test_data"]
-records = json.loads(data.T.to_json()).values()
-my_db.my_col.insert_many(data.to_dict('records'))
+#my_client = pymongo.MongoClient("mongodb://pythonca2:reU3cS3CLAUaHHJ4126e3FG6cZ5iZ2q4cFd8vbqu87bcPmfsJinH3LeTg22HCqMQfK1A1EGGjLyJACDbgxzTQg==@pythonca2.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@pythonca2@")
+#my_db = my_client["hotel_test"]
+#my_col = my_db["test_data"]
+#records = json.loads(data.T.to_json()).values()
+#my_db.my_col.insert_many(data.to_dict('records'))
 
-for i in my_col.find():
-    print(i)
+#for i in my_col.find():
+#    print(i)
 
