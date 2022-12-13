@@ -1,13 +1,39 @@
+import time
 from bs4 import BeautifulSoup
-import requests
 import pandas as pd
-import pymongo
-from pandas.io import json
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 
+#with closing(Chrome()) as driver:
+ #   driver.get("https://www.easemytrip.com/hotels/hotels-in-bangalore")
+ #   driver.execute_script('return document.body.scrollHeight')
+ #   button = driver.find_elements_by_id('divEndloader')
+ #   button.click()
+    # wait for the page to load
+ #   element = WebDriverWait(driver, 10).until(
+ #      EC.invisibility_of_element_located((By.ID, "deviceShowAllLink"))
+ #   )
+    # store it to string variable
+ #   page_source = driver.page_source
+
+options = Options()
+b = webdriver.Chrome(options=options)
 url = 'https://www.easemytrip.com/hotels/hotels-in-bangalore'
-page = requests.get(url)
+b.get(url)
+last_height = b.execute_script("return document.body.scrollHeight")
+while True:
+    # Scroll down to the bottom.
+    b.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    # Wait to load the page.
+    time.sleep(2)
+    # Calculate new scroll height and compare with last scroll height.
+    new_height = b.execute_script("return document.body.scrollHeight")
 
-soup = BeautifulSoup(page.content, 'html.parser')
+    if new_height == last_height:
+        break
+    last_height = new_height
+
+soup = BeautifulSoup(b.page_source, 'html.parser')
 lists = soup.find_all('div', class_="result-item" )
 
 title = []
@@ -38,16 +64,6 @@ for l in lists:
 
 
 data = pd.DataFrame({'title':title, 'address':address, 'hotel_type':hotel_type, 'actual_price':actual_price,
-                         'cross_price':cross_price,'prn_tax':prn_tax, 'cancel_chrg_apply':cancel_chrg_apply})
+                     'cross_price':cross_price,'prn_tax':prn_tax, 'cancel_chrg_apply':cancel_chrg_apply})
 pd.set_option('display.max_columns', None)
 print(data)
-
-#my_client = pymongo.MongoClient("mongodb://pythonca2:reU3cS3CLAUaHHJ4126e3FG6cZ5iZ2q4cFd8vbqu87bcPmfsJinH3LeTg22HCqMQfK1A1EGGjLyJACDbgxzTQg==@pythonca2.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&replicaSet=globaldb&maxIdleTimeMS=120000&appName=@pythonca2@")
-#my_db = my_client["hotel_test"]
-#my_col = my_db["test_data"]
-#records = json.loads(data.T.to_json()).values()
-#my_db.my_col.insert_many(data.to_dict('records'))
-
-#for i in my_col.find():
-#    print(i)
-
