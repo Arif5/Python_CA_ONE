@@ -3,18 +3,9 @@ from bs4 import BeautifulSoup
 import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-
-#with closing(Chrome()) as driver:
- #   driver.get("https://www.easemytrip.com/hotels/hotels-in-bangalore")
- #   driver.execute_script('return document.body.scrollHeight')
- #   button = driver.find_elements_by_id('divEndloader')
- #   button.click()
-    # wait for the page to load
- #   element = WebDriverWait(driver, 10).until(
- #      EC.invisibility_of_element_located((By.ID, "deviceShowAllLink"))
- #   )
-    # store it to string variable
- #   page_source = driver.page_source
+import pymongo
+from pandas.io import json
+import urllib.parse
 
 options = Options()
 b = webdriver.Chrome(options=options)
@@ -66,4 +57,13 @@ for l in lists:
 data = pd.DataFrame({'title':title, 'address':address, 'hotel_type':hotel_type, 'actual_price':actual_price,
                      'cross_price':cross_price,'prn_tax':prn_tax, 'cancel_chrg_apply':cancel_chrg_apply})
 pd.set_option('display.max_columns', None)
-print(data)
+#print(data)
+
+my_client = pymongo.MongoClient("mongodb+srv://arif584:" + urllib.parse.quote("Mancity@123") + "@webscrapepy.hwzhmpg.mongodb.net/?retryWrites=true&w=majority")
+my_db = my_client["hotel_test"]
+my_col = my_db["test_data"]
+records = json.loads(data.T.to_json()).values()
+my_db.my_col.insert_many(data.to_dict('records'))
+
+for i in my_col.find():
+    print(i)
