@@ -1,3 +1,5 @@
+#Git repository link -
+#importing required libraries
 import time
 import numpy as np
 from bs4 import BeautifulSoup
@@ -8,6 +10,7 @@ import pymongo
 from pandas.io import json
 import urllib.parse
 
+#Setting up selinium chrome driver
 options = Options()
 b = webdriver.Chrome(options=options)
 url = 'https://www.easemytrip.com/hotels/hotels-in-bangalore'
@@ -25,6 +28,7 @@ while True:
         break
     last_height = new_height
 
+#scraping the data using beautiful soup
 soup = BeautifulSoup(b.page_source, 'html.parser')
 lists = soup.find_all('div', class_="result-item" )
 
@@ -79,13 +83,14 @@ for l in lists:
     else:
         star_rating.append('NA')
 
+#creating the dataframe from the lists
 data = pd.DataFrame({'title': title, 'address': address, 'hotel_type': hotel_type, 'actual_price': actual_price,
                      'cross_price': cross_price, 'prn_tax': prn_tax, 'cancel_chrg_apply': cancel_chrg_apply,
                      'offer_code': offer_code, 'top_deal': top_deal, 'reviews': reviews, 'text_reviews': text_reviews,
                      'star_rating': star_rating})
 pd.set_option('display.max_columns', None)
-print(data)
 
+#applying transformations
 data[['offer_code', 'offer']] = data['offer_code'].str.split("and", expand=True)
 data['offer_code'] = data['offer_code'].str.replace('UseCode:', '')
 data['offer'] = data['offer'].str.replace('OFFonthisHotel', '')
@@ -97,12 +102,16 @@ data['offer'] = data['offer'].replace(np.nan, '0.0')
 data['price_inc_tax'] = data['actual_price'].astype(float) + data['prn_tax'].astype(float)
 data['final_effective_price'] = data['price_inc_tax'].astype(float) - data['offer'].astype(float)
 data['date'] = pd.to_datetime('today').strftime("%Y-%m-%d")
+
+#printing the dataframe
 print(data)
 
-
+#inserting the data into mongodb
 my_client = pymongo.MongoClient("mongodb+srv://arif584:" + urllib.parse.quote("Mancity@123") + "@webscrapepy.hwzhmpg.mongodb.net/?retryWrites=true&w=majority")
-my_db = my_client["hotel_test"]
-my_col = my_db["test_data"]
+my_db = my_client["banglr_hotels"]
+my_col = my_db["hotels_data"]
 records = json.loads(data.T.to_json()).values()
 my_db.my_col.insert_many(data.to_dict('records'))
+
+
 
